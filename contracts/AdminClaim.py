@@ -69,7 +69,7 @@ import typing
 #
 # The runner rejects the str replace method; slice around find() instead.
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 V_MATCH = "MATCH"
 V_WEAKER = "WEAKER_THAN_CLAIMED"
@@ -130,8 +130,11 @@ SEL = {
     "pendingAdmin": "0x26782247", "getThreshold": "0xe75235b8", "getOwners": "0xa0e67e2b",
     "VERSION": "0xffa1ad74", "getModulesPaginated": "0xcc2f8452", "getMinDelay": "0xf27a0c92",
     "hasRole": "0x91d14854", "PROPOSER_ROLE": "0x8f61f4f5", "delay": "0x6a42b8f8",
-    "GRACE_PERIOD": "0xc1a287e2", "facets": "0x7a0ed627",
+    "GRACE_PERIOD": "0xc1a287e2", "facets": "0x7a0ed627", "proxiableUUID": "0x52d1902d",
 }
+# PUSH4 operands in an EIP-1967 implementation that mean it can upgrade the
+# proxy itself (UUPS): upgradeTo, upgradeToAndCall, proxiableUUID.
+UPGRADE_SELECTORS = ("3659cfe6", "4f1ef286", "52d1902d")
 # PUSH4 operands that mean "this contract has an admin of some kind".
 ADMIN_SELECTORS = ("8da5cb5b", "e30c3978", "f851a440", "26782247", "91d14854", "248a9ca3",
                    "2f2ff15d", "f2fde38b", "3659cfe6", "4f1ef286", "8f283970", "4dd18bf5")
@@ -746,6 +749,59 @@ def _model_value(field: str, v: typing.Any) -> typing.Any:
     return None
 
 
+# Round-1 fix H4: words and link forms that say which chain a docs section is
+# about. A match counts only if the characters around it are not letters,
+# digits, "." or "-" (so "optimistic.etherscan.io" is not Ethereum and
+# "github.com/ethereum-optimism" is not Ethereum).
+CHAIN_MARKS = {
+    "ethereum": ("ethereum", "etherscan.io", "eth:"),
+    "optimism": ("optimism", "op mainnet", "optimistic.etherscan.io", "oeth:"),
+    "arbitrum": ("arbitrum", "arbiscan.io", "arb1:"),
+    "base": ("basescan.org", "base:", "base mainnet"),
+    "polygon": ("polygon", "polygonscan.com", "matic:", "matic"),
+}
+
+
+def _alnum(c: str) -> bool:
+    return ("a" <= c <= "z") or ("0" <= c <= "9") or c in ".-"
+
+
+def chains_named(low: str, heading: bool = False) -> list:
+    """Supported chains a lowercased text names (a heading may also say just
+    "Base")."""
+    out = []
+    for ch in CHAIN_MARKS:
+        marks = CHAIN_MARKS[ch] + (("base",) if heading and ch == "base" else ())
+        for m in marks:
+            k = low.find(m)
+            while k >= 0:
+                before = low[k - 1] if k > 0 else " "
+                end = k + len(m)
+                after = low[end] if end < len(low) else " "
+                if not _alnum(before) and (m.endswith(":") or not _alnum(after)):
+                    if ch not in out:
+                        out.append(ch)
+                    break
+                k = low.find(m, k + 1)
+    return sorted(out)
+
+
+def section_chains(docs: str, low_docs: str, s: int, e: int, addrs: list) -> list:
+    """The chains a section is about: named in its heading or on the lines
+    of the section that hold a submitted address."""
+    first = docs.find("\n", s)
+    first = e if first < 0 or first > e else first
+    head = low_docs[s:first] if _heading_level(docs[s:first]) > 0 else ""
+    named = chains_named(head, True)
+    for a in addrs:
+        for pos in address_positions(low_docs[s:e], a):
+            ls, le = line_bounds(docs, s + pos, s + pos + 40)
+            for ch in chains_named(low_docs[ls:le]):
+                if ch not in named:
+                    named.append(ch)
+    return sorted(named)
+
+
 MARKUP = "*`"
 
 
@@ -790,7 +846,8 @@ def anchor_quote(docs: str, q: str, pre: typing.Any = None) -> list:
     return out
 
 
-def keep_claim(raw: typing.Any, docs: str, low_docs: str, addrs: list, pre: typing.Any = None) -> dict:
+def keep_claim(raw: typing.Any, docs: str, low_docs: str, addrs: list, pre: typing.Any = None,
+               chain: str = "") -> dict:
     """One model claim -> {"field", "value", "quote", "at"} or {"drop": reason}.
 
     Kept only if: the field is one of FIELDS; the quote is 3..400 characters
@@ -832,6 +889,11 @@ def keep_claim(raw: typing.Any, docs: str, low_docs: str, addrs: list, pre: typi
         for a in addresses_in(low_docs[ls:le]):
             if a not in addrs:
                 foreign = True
+        if near and not foreign and chain != "":
+            named = section_chains(docs, low_docs, s, e, addrs)
+            if len(named) > 0 and chain not in named:
+                reason = "QUOTE_SECTION_ABOUT_ANOTHER_CHAIN"
+                continue
         if near and not foreign:
             if field == "admin_kind":
                 if not _has_any(strip_urls(q).lower(), KIND_WORDS[mv]):
@@ -848,7 +910,7 @@ def keep_claim(raw: typing.Any, docs: str, low_docs: str, addrs: list, pre: typi
     return {"drop": reason}
 
 
-def keep_claims(model_out: typing.Any, docs: str, addrs: list) -> dict:
+def keep_claims(model_out: typing.Any, docs: str, addrs: list, chain: str = "") -> dict:
     """The model's answer -> {"kept": [...], "conflicts": [...]} (canonical,
     sorted). Two kept claims for one field with different values: the field
     is a conflict and none of them is kept. One field, one value, several
@@ -867,7 +929,7 @@ def keep_claims(model_out: typing.Any, docs: str, addrs: list) -> dict:
     pre = plain_view(docs)
     by_field = {}
     for raw in claims:
-        k = keep_claim(raw, docs, low, addrs, pre)
+        k = keep_claim(raw, docs, low, addrs, pre, chain)
         if "drop" in k:
             continue
         by_field.setdefault(k["field"], []).append(k)
@@ -900,7 +962,7 @@ def claims_sig(c: dict) -> str:
                    "conflicts": c.get("conflicts", [])})
 
 
-def recheck_kept(kept: typing.Any, docs: str, addrs: list) -> bool:
+def recheck_kept(kept: typing.Any, docs: str, addrs: list, chain: str = "") -> bool:
     """A validator re-runs code's rules on each claim the leader kept: the
     stored quote must be verbatim docs text that code itself accepts, with the
     same value."""
@@ -916,7 +978,7 @@ def recheck_kept(kept: typing.Any, docs: str, addrs: list) -> bool:
         seen.append(k["field"])
         if not isinstance(k["quote"], str) or docs.find(k["quote"]) < 0:
             return False
-        got = keep_claim(k, docs, low, addrs)
+        got = keep_claim(k, docs, low, addrs, None, chain)
         if "drop" in got or got["quote"] != k["quote"] or _canon(got["value"]) != _canon(k["value"]):
             return False
     return True
@@ -1082,6 +1144,25 @@ def strip_metadata(code: bytes) -> bytes:
     return code
 
 
+def push4_selectors(code: bytes, wanted: tuple) -> list:
+    """Which of `wanted` (4-byte hex) appear as PUSH4 operands."""
+    b = strip_metadata(code)
+    out = []
+    i = 0
+    n = len(b)
+    while i < n:
+        op = b[i]
+        if 0x60 <= op <= 0x7f:
+            if op == 0x63 and i + 5 <= n:
+                s = b[i + 1:i + 5].hex()
+                if s in wanted and s not in out:
+                    out.append(s)
+            i += op - 0x5e
+            continue
+        i += 1
+    return sorted(out)
+
+
 def scan_code(code: bytes) -> dict:
     """{"mutators": DELEGATECALL / CALLCODE / SELFDESTRUCT opcodes present,
     "admin_selectors": PUSH4 operands that are admin-function selectors}.
@@ -1221,6 +1302,20 @@ def classify(rd: Reader, a: str) -> dict:
             node["kind"] = K_NONSTD
             node["why"] = "EIP1967_PROXY_WITHOUT_ADMIN_SLOT"
             return node
+        # round-1 fix H1: the admin slot is the upgrade authority only if the
+        # implementation cannot upgrade the proxy itself (UUPS)
+        ir = rd.many([rd.code(impl), rd.call(impl, SEL["proxiableUUID"])])
+        impl_hex = _must(ir[0])[2:].lower()
+        if not _is_hex(impl_hex) or len(impl_hex) % 2 != 0:
+            raise ReadFailed("code")
+        ups = push4_selectors(bytes.fromhex(impl_hex), UPGRADE_SELECTORS)
+        uuid = dec_word(_ok(ir[1]))
+        node["implementation_code_sha256"] = hashlib.sha256(bytes.fromhex(impl_hex)).hexdigest()
+        if len(ups) > 0 or uuid == IMPL_SLOT[2:]:
+            node["kind"] = K_NONSTD
+            node["why"] = "IMPLEMENTATION_CAN_UPGRADE"
+            node["implementation_selectors"] = ups
+            return node
         node["kind"] = K_PROXY
         node["admin"] = adm
         return node
@@ -1231,6 +1326,14 @@ def classify(rd: Reader, a: str) -> dict:
     scan = scan_code(code)
     node["immutable_code"] = len(scan["mutators"]) == 0
     node["code_mutators"] = scan["mutators"]
+    if "DELEGATECALL" in scan["mutators"] or "CALLCODE" in scan["mutators"]:
+        # round-1 fix H2: a contract that delegates answers owner(),
+        # getMinDelay() and delay() from code it does not own; nothing it
+        # says about its controller can be trusted
+        facets = _ok(rd.many([rd.call(a, SEL["facets"])])[0])
+        node["kind"] = K_NONSTD
+        node["why"] = "DIAMOND" if facets is not None and len(_hexbody(facets)) >= 128 else "DELEGATING_CONTRACT"
+        return node
     s1 = rd.many([rd.call(a, SEL["getMinDelay"]), rd.call(a, SEL["PROPOSER_ROLE"]),
                   rd.call(a, SEL["owner"]), rd.call(a, SEL["pendingOwner"])])
     min_delay = dec_uint(_ok(s1[0]))
@@ -1454,13 +1557,15 @@ def route_facts(route: dict, nodes: dict) -> dict:
     elif end == E_NONE or end == K_NO_ADMIN:
         term = "NONE"
     delay = None
+    oz = False
     for a in route["path"]:
         n = nodes.get(a, {})
         if n.get("kind") == K_OZ_TL:
+            oz = True
             delay = (0 if delay is None else delay) + int(n["min_delay"])
         elif n.get("kind") == K_COMP_TL:
             delay = (0 if delay is None else delay) + int(n["delay"])
-    return {"terminal": term, "threshold": thr, "signers": sig, "delay": delay, "end": end}
+    return {"terminal": term, "threshold": thr, "signers": sig, "delay": delay, "end": end, "oz_timelock": oz}
 
 
 def _cmp(actual: int, claimed: int) -> str:
@@ -1472,6 +1577,18 @@ def _cmp(actual: int, claimed: int) -> str:
 
 
 def compare_route(field: str, value: typing.Any, f: dict) -> str:
+    """Round-1 fix H3: an OZ TimelockController's PROPOSER / admin roles
+    cannot be listed, only tested for addresses the walk meets. Through one,
+    a claim about WHO controls (threshold, signers, kind other than
+    "timelock") can be shown weaker, never matching or stronger."""
+    r = _compare_route(field, value, f)
+    who = field in ("multisig_threshold", "multisig_signers") or (field == "admin_kind" and value != "timelock")
+    if who and f.get("oz_timelock") and r in (V_MATCH, V_STRONGER):
+        return V_UNVERIFIABLE
+    return r
+
+
+def _compare_route(field: str, value: typing.Any, f: dict) -> str:
     t = f["terminal"]
     if field == "multisig_threshold" or field == "multisig_signers":
         if t == "SAFE":
@@ -1620,7 +1737,10 @@ def decide(kept: list, status: str, walked: dict, addrs: list) -> dict:
             else:
                 rs = [compare_route(c["field"], c["value"], route_facts(r, nodes)) for r in routes.get(s, [])]
                 per[s] = combine_routes(rs)
-        res = worst_decided([per[s] for s in subs])
+        # round-1 fix M2: a submitted controller that no submitted contract
+        # was shown to reach must not decide on its own: subjects combine
+        # like routes (any WEAKER, else any UNVERIFIABLE, else MATCH, ...)
+        res = combine_routes([per[s] for s in subs])
         out.append({"field": c["field"], "value": c["value"], "quote": c["quote"], "result": res,
                     "per_subject": per})
     if len(out) == 0:
@@ -1638,13 +1758,19 @@ VERB = {
 }
 
 
-def summary_text(verdict: str, repo: str, commit: str, commit_date: int, block: int, block_time: int) -> str:
-    """Neutral wording, always dated."""
+def summary_text(verdict: str, repo: str, commit: str, commit_date: int, block: int, block_time: int,
+                 decided: int = 0, total: int = 0) -> str:
+    """Neutral wording, always dated. Round-1 fix M1: when some claims could
+    not be checked, the sentence says how many were decided."""
     docs = "the docs at commit " + commit[:10] + " (" + iso_date(commit_date) + ")"
     at = "block " + str(block) + " (" + iso_minute(block_time) + ")"
     head = "Docs from github.com/" + repo + ". "
     if verdict in VERB:
-        return head + "On-chain control at " + at + " " + VERB[verdict] + " " + docs + " state."
+        tail = "."
+        if 0 < decided < total:
+            tail = " (" + str(decided) + " of " + str(total) + " claims decided; the other " + str(total - decided) + \
+                " could not be checked with the standard control patterns AdminClaim reads)."
+        return head + "On-chain control at " + at + " " + VERB[verdict] + " " + docs + " state" + tail
     if verdict == V_UNVERIFIABLE:
         return head + "On-chain control at " + at + " could not be compared with what " + docs + \
             " state, using only the standard control patterns AdminClaim reads."
@@ -1889,7 +2015,7 @@ def ask_claims(text: str, p: dict, nonce: str) -> dict:
         raw = gl.nondet.exec_prompt(model_prompt(text, p["chain"], p["addrs"], nonce), response_format="json")
     except Exception:
         return {"error": "MODEL_ERROR"}
-    return keep_claims(raw, text, p["addrs"])
+    return keep_claims(raw, text, p["addrs"], p["chain"])
 
 
 def claims_status(answers: list) -> dict:
@@ -1955,7 +2081,7 @@ def validate_record(theirs: typing.Any, p: dict, now: int, freshness_s: int) -> 
         return tc.get("kept") == [] and tc.get("conflicts") == []
     if st != "STABLE":
         return False
-    if not recheck_kept(tc.get("kept"), text, p["addrs"]) or not isinstance(tc.get("conflicts"), list):
+    if not recheck_kept(tc.get("kept"), text, p["addrs"], p["chain"]) or not isinstance(tc.get("conflicts"), list):
         return False
     nonce = nonce_for(p, now, mine["docs"]["sha256"])
     want = claims_sig(tc)
@@ -2148,8 +2274,9 @@ class AdminClaim(gl.contract.Contract):
         cl = ev["claims"]
         out = decide(cl["kept"], cl["status"], ev["walk"], addrs)
         docs = ev["docs"]
+        decided = len([k for k in out["claims"] if k["result"] != V_UNVERIFIABLE])
         summary = summary_text(out["verdict"], docs["repo"], docs["commit"], int(docs["proof"]["commit_date"]),
-                               int(blk["number"]), int(blk["timestamp"]))
+                               int(blk["number"]), int(blk["timestamp"]), decided, len(out["claims"]))
         chain_facts = {"nodes": ev["walk"]["nodes"], "routes": ev["walk"]["routes"],
                        "roles": ev["walk"]["roles"], "candidates": ev["walk"]["candidates"]}
         claims_doc = {"kept": out["claims"], "conflicts": cl["conflicts"]}

@@ -646,7 +646,7 @@ class Patterns(unittest.TestCase):
     def test_delegating_contract_without_pattern_is_nonstandard(self):
         self.mc.code[F.PROXY] = F.DELEGATING_CODE
         n = walk([F.PROXY])["nodes"][F.PROXY]
-        self.assertEqual((n["kind"], n["why"]), ("NONSTANDARD", "UNRECOGNIZED_CONTROL"))
+        self.assertEqual((n["kind"], n["why"]), ("NONSTANDARD", "DELEGATING_CONTRACT"))
 
     def test_admin_selector_without_readable_owner_is_nonstandard(self):
         self.mc.code[F.PROXY] = "0x6080604052" + "6391d14854" + "14" + "6000fe"     # hasRole present
@@ -1326,6 +1326,92 @@ class Constructor(unittest.TestCase):
         self.assertEqual((cfg["mode"], cfg["cooldown_s"], cfg["freshness_s"], cfg["history_keep"], cfg["max_depth"]),
                          ("DEMO", 60, 600, 20, 4))
         self.assertEqual(sorted(cfg["chains"]), ["arbitrum", "base", "ethereum", "optimism", "polygon"])
+
+
+class RoundOneRules(unittest.TestCase):
+    """Unit tests for the rules added by the round-1 attacker pass."""
+
+    def test_chains_named_boundaries(self):
+        self.assertEqual(C.chains_named("https://etherscan.io/address/x"), ["ethereum"])
+        self.assertEqual(C.chains_named("https://optimistic.etherscan.io/address/x"), ["optimism"])
+        self.assertEqual(C.chains_named("https://github.com/ethereum-optimism/docs"), [])
+        self.assertEqual(C.chains_named("safe=oeth:0xabc"), ["optimism"])
+        self.assertEqual(C.chains_named("safe=eth:0xabc"), ["ethereum"])
+        self.assertEqual(C.chains_named("matic:[`0xabc`]"), ["polygon"])
+        self.assertEqual(C.chains_named("automatic rebasing"), [])
+        self.assertEqual(C.chains_named("a base fee"), [])
+        self.assertEqual(C.chains_named("## emergency brakes: base", True), ["base"])
+        self.assertEqual(C.chains_named("arbitrum-one rpc"), [])
+
+    def test_section_chains_reads_heading_and_address_lines(self):
+        docs = "### Committee (Polygon)\nsome text about ethereum\n**Address:** " + F.SAFE + "\n"
+        s, e = C.section_bounds(docs, 30)
+        self.assertEqual(C.section_chains(docs, docs.lower(), s, e, [F.SAFE]), ["polygon"])
+        docs2 = "### Committee\n**Address:** [" + F.SAFE + "](https://app.safe.global/home?safe=arb1:" + F.SAFE + ")\n"
+        s, e = C.section_bounds(docs2, 20)
+        self.assertEqual(C.section_chains(docs2, docs2.lower(), s, e, [F.SAFE]), ["arbitrum"])
+        docs3 = "### Committee\n**Address:** " + F.SAFE + "\n"
+        s, e = C.section_bounds(docs3, 20)
+        self.assertEqual(C.section_chains(docs3, docs3.lower(), s, e, [F.SAFE]), [])
+
+    def test_keep_claim_chain_binding(self):
+        docs = "### A (Ethereum)\n" + F.SAFE + "\nQuorum: 5/9 multisig\n### B (Polygon)\n" + F.SAFE + "\nQuorum: 2/3 multisig\n"
+        k = C.keep_claim({"field": "multisig_threshold", "value": 5, "quote": "Quorum: 5/9 multisig"}, docs, docs.lower(), [F.SAFE], None, "polygon")
+        self.assertEqual(k["drop"], "QUOTE_SECTION_ABOUT_ANOTHER_CHAIN")
+        k = C.keep_claim({"field": "multisig_threshold", "value": 2, "quote": "Quorum: 2/3 multisig"}, docs, docs.lower(), [F.SAFE], None, "polygon")
+        self.assertEqual(k["value"], 2)
+        k = C.keep_claim({"field": "multisig_threshold", "value": 5, "quote": "Quorum: 5/9 multisig"}, docs, docs.lower(), [F.SAFE], None, "ethereum")
+        self.assertEqual(k["value"], 5)
+
+    def test_push4_selectors(self):
+        self.assertEqual(C.push4_selectors(bytes.fromhex("634f1ef28614"), C.UPGRADE_SELECTORS), ["4f1ef286"])
+        self.assertEqual(C.push4_selectors(bytes.fromhex("644f1ef28600"), C.UPGRADE_SELECTORS), [])
+
+    def test_transparent_proxy_with_clean_implementation_still_followed(self):
+        mc, ch = F.fresh_world()
+        F.standard_path(ch)
+        w = walk([F.PROXY])
+        self.assertEqual(w["nodes"][F.PROXY]["kind"], "EIP1967_PROXY")
+        self.assertIn("implementation_code_sha256", w["nodes"][F.PROXY])
+
+    def test_proxiable_uuid_alone_marks_uups(self):
+        mc, ch = F.fresh_world()
+        F.standard_path(ch)
+        mc.calls[(F.addr(0x9999), "0x52d1902d")] = "0x" + C.IMPL_SLOT[2:]
+        self.assertEqual(walk([F.PROXY])["nodes"][F.PROXY]["why"], "IMPLEMENTATION_CAN_UPGRADE")
+
+    def test_oz_timelock_route_cannot_match_who_claims(self):
+        f = facts("SAFE", 4, 7, 172800)
+        f["oz_timelock"] = True
+        self.assertEqual(C.compare_route("multisig_threshold", 4, f), "UNVERIFIABLE")
+        self.assertEqual(C.compare_route("multisig_threshold", 6, f), "WEAKER_THAN_CLAIMED")
+        self.assertEqual(C.compare_route("multisig_signers", 5, f), "UNVERIFIABLE")
+        self.assertEqual(C.compare_route("admin_kind", "multisig", f), "UNVERIFIABLE")
+        self.assertEqual(C.compare_route("admin_kind", "timelock", f), "MATCH")
+        self.assertEqual(C.compare_route("timelock_delay_seconds", 172800, f), "MATCH")
+        f2 = facts("EOA", delay=172800)
+        f2["oz_timelock"] = True
+        self.assertEqual(C.compare_route("multisig_threshold", 4, f2), "WEAKER_THAN_CLAIMED")
+
+    def test_compound_timelock_route_still_decides(self):
+        f = facts("SAFE", 4, 7, 172800)
+        f["oz_timelock"] = False
+        self.assertEqual(C.compare_route("multisig_threshold", 4, f), "MATCH")
+
+    def test_summary_counts_decided_claims(self):
+        s = C.summary_text("MATCH", "acme/docs", F.SHA, F.NOW, 1, F.NOW, 1, 3)
+        self.assertIn("(1 of 3 claims decided; the other 2 could not be checked", s)
+        s = C.summary_text("MATCH", "acme/docs", F.SHA, F.NOW, 1, F.NOW, 3, 3)
+        self.assertTrue(s.endswith("state."))
+
+    def test_subjects_combine_conservatively(self):
+        mc, ch = F.fresh_world()
+        mc.code[F.PROXY] = F.DELEGATING_CODE
+        ch.safe(F.SAFE, 4, F.OWNERS7)
+        w = walk([F.PROXY, F.SAFE])
+        out = C.decide([{"field": "multisig_threshold", "value": 4, "quote": "q"}], "STABLE", w, sorted([F.PROXY, F.SAFE]))
+        self.assertEqual(out["claims"][0]["result"], "UNVERIFIABLE")
+        self.assertEqual(sorted(out["subjects"]), sorted([F.PROXY, F.SAFE]))
 
 
 # =============================================================================
