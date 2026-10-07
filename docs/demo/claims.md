@@ -12,7 +12,7 @@ The Safe `0x87D93d9B2C672bf9c9642d853a8682546a5012B5` is a 3-of-3 multisig, and 
 
 ## 3. Statement the chain is stronger than
 
-The multisig `0xD97221065E826167A2cFE3307972c0D42200fDB4` needs only 1 of 3 signatures.
+The multisig `0xC18F11735C6a1941431cCC5BcF13AF0a052A5022` needs only 2 of 6 signatures.
 
 ## 4. Statement about an immutable contract
 
@@ -24,4 +24,8 @@ The bridged token contract `0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619` is immut
 
 ## 6. Statement that is hard to read
 
-The signer set of `0x1840c4D81d2C50B603da5391b6A24c1cD62D0B56` has changed over time: early drafts mentioned two of three, a later proposal floated five of nine, and the figure most often quoted today is four out of eight, although some pages still repeat the older numbers.
+The signer set of `0xFc832dA3D688352C0aB1A32136c7fABbB16d66E6` has changed over time: early drafts mentioned two of three, a later proposal floated five of nine, and the figure most often quoted today is three out of six, although some pages still repeat the older numbers.
+
+## 7. Statement about a Safe that has a module
+
+The Safe `0x3c58668054c299bE836a0bBB028Bee3aD4724846` is a 3-of-7 multisig.
