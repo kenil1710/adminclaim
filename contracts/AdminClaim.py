@@ -21,8 +21,8 @@ import typing
 #      a claim only if the quote is an exact substring of the docs, sits in a
 #      docs section that names a submitted address, and code itself parses the
 #      value from the quote ("4-of-7", "4/7", "four of seven", "48 hours",
-#      "2 days", "172800 seconds"). The leader asks twice; two different kept
-#      sets -> INCONCLUSIVE;
+#      "2 days", "172800 seconds"). The leader asks up to three times and
+#      needs two answers with the same kept claims, else INCONCLUSIVE;
 #   3. reads the control path at ONE finalized block the leader names (fresh:
 #      1 h canonical / 10 min demo), standard patterns only: EIP-1967 admin /
 #      implementation / beacon slots, Ownable owner() and pendingOwner(), OZ
@@ -646,6 +646,26 @@ KIND_WORDS = {
 }
 
 
+def strip_urls(text: str) -> str:
+    """The text with every http(s)://... run blanked, so a word inside a link
+    ("app.safe.global") never counts as the docs saying it."""
+    t = text
+    low = t.lower()
+    out = ""
+    i = 0
+    while i < len(t):
+        if low[i:i + 7] == "http://" or low[i:i + 8] == "https://":
+            j = i
+            while j < len(t) and t[j] not in " \t\n)]>\"'":
+                j += 1
+            out += " " * (j - i)
+            i = j
+            continue
+        out += t[i]
+        i += 1
+    return out
+
+
 def _cut_all(low: str, phrases: tuple) -> str:
     """`low` with every occurrence of every phrase blanked (slicing)."""
     t = low
@@ -675,8 +695,8 @@ def claim_value(field: str, quote: str, context: str) -> typing.Any:
     """The value CODE reads from the quote, or {"drop": reason}. `context` is
     the docs section holding the quote (for the multisig / timelock words a
     table cell like "3/5" does not carry itself)."""
-    low_q = quote.lower()
-    low_c = context.lower()
+    low_q = strip_urls(quote).lower()
+    low_c = strip_urls(context).lower()
     if field == "multisig_threshold" or field == "multisig_signers":
         pairs = parse_n_of_m(quote)
         if len(pairs) == 0:
@@ -814,7 +834,7 @@ def keep_claim(raw: typing.Any, docs: str, low_docs: str, addrs: list, pre: typi
                 foreign = True
         if near and not foreign:
             if field == "admin_kind":
-                if not _has_any(q.lower(), KIND_WORDS[mv]):
+                if not _has_any(strip_urls(q).lower(), KIND_WORDS[mv]):
                     return {"drop": "KIND_NOT_IN_QUOTE"}
                 return {"field": field, "value": mv, "quote": q, "at": at}
             v = claim_value(field, q, docs[s:e])
@@ -1872,12 +1892,18 @@ def ask_claims(text: str, p: dict, nonce: str) -> dict:
     return keep_claims(raw, text, p["addrs"])
 
 
-def claims_status(a: dict, b: dict) -> dict:
-    if "error" in a or "error" in b:
+def claims_status(answers: list) -> dict:
+    """The leader's claims from up to three filtered answers: STABLE with the
+    first answer that another answer agrees with (same claims_sig); else
+    MODEL_ERROR if fewer than two answers came back, else UNSTABLE."""
+    ok = [a for a in answers if "error" not in a]
+    for i in range(len(ok)):
+        for j in range(i + 1, len(ok)):
+            if claims_sig(ok[i]) == claims_sig(ok[j]):
+                return {"status": "STABLE", "kept": ok[i]["kept"], "conflicts": ok[i]["conflicts"]}
+    if len(ok) < 2:
         return {"status": "MODEL_ERROR", "kept": [], "conflicts": []}
-    if claims_sig(a) != claims_sig(b):
-        return {"status": "UNSTABLE", "kept": [], "conflicts": []}
-    return {"status": "STABLE", "kept": a["kept"], "conflicts": a["conflicts"]}
+    return {"status": "UNSTABLE", "kept": [], "conflicts": []}
 
 
 def nonce_for(p: dict, now: int, docs_sha: str) -> str:
@@ -1890,9 +1916,10 @@ def leader_record(p: dict, now: int, freshness_s: int) -> dict:
         return {"refused": ev.get("refused", ev.get("reject"))}
     text = ev.pop("_text")
     nonce = nonce_for(p, now, ev["docs"]["sha256"])
-    a = ask_claims(text, p, nonce)
-    b = ask_claims(text, p, nonce)
-    ev["claims"] = claims_status(a, b)
+    answers = [ask_claims(text, p, nonce), ask_claims(text, p, nonce)]
+    if "error" in answers[0] or "error" in answers[1] or claims_sig(answers[0]) != claims_sig(answers[1]):
+        answers.append(ask_claims(text, p, nonce))
+    ev["claims"] = claims_status(answers)
     return ev
 
 

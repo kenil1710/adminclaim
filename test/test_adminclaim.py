@@ -356,9 +356,23 @@ class KeepClaim(unittest.TestCase):
 
     def test_claims_status(self):
         a = {"kept": [], "conflicts": []}
-        self.assertEqual(C.claims_status(a, a)["status"], "STABLE")
-        self.assertEqual(C.claims_status(a, {"kept": [], "conflicts": ["x"]})["status"], "UNSTABLE")
-        self.assertEqual(C.claims_status({"error": "MODEL_ERROR"}, a)["status"], "MODEL_ERROR")
+        b = {"kept": [], "conflicts": ["x"]}
+        c = {"kept": [], "conflicts": ["y"]}
+        e = {"error": "MODEL_ERROR"}
+        self.assertEqual(C.claims_status([a, a])["status"], "STABLE")
+        self.assertEqual(C.claims_status([a, b])["status"], "UNSTABLE")
+        self.assertEqual(C.claims_status([a, b, b])["conflicts"], ["x"])
+        self.assertEqual(C.claims_status([a, b, a])["conflicts"], [])
+        self.assertEqual(C.claims_status([a, b, c])["status"], "UNSTABLE")
+        self.assertEqual(C.claims_status([e, a, a])["status"], "STABLE")
+        self.assertEqual(C.claims_status([e, a, e])["status"], "MODEL_ERROR")
+
+    def test_kind_words_inside_urls_do_not_count(self):
+        docs = "## S\n**Address:** [`" + F.SAFE + "`](https://app.safe.global/home?safe=eth:" + F.SAFE + ")\n"
+        k = keep({"field": "admin_kind", "value": "multisig",
+                  "quote": "**Address:** [`" + F.SAFE + "`](https://app.safe.global/home?safe=eth:" + F.SAFE + ")"}, docs, [F.SAFE])
+        self.assertEqual(k["drop"], "KIND_NOT_IN_QUOTE")
+        self.assertEqual(C.strip_urls("a https://x.io/safe b"), "a                   b")
 
     def test_recheck_kept(self):
         addrs = C.parse_addresses(ALL3)
@@ -908,15 +922,26 @@ class Filing(unittest.TestCase):
         o = run_claim(self.c)
         self.assertEqual((o.value["verdict"], o.value["basis"]), ("UNVERIFIABLE", "NO_CLAIM_KEPT"))
 
+    def test_two_of_three_agreement_is_stable(self):
+        other = F.claims(("upgradeable", True, "is upgradeable"))
+        stub.MODEL.answer = lambda p, n: other if n == 2 else F.GOOD_CLAIMS
+        o = run_claim(self.c)
+        self.assertEqual(o.value["verdict"], "MATCH")
+        self.assertEqual(len(self.c.get_record(1)["claims"]["kept"]), 3)
+
     def test_unstable_model_is_inconclusive(self):
-        stub.MODEL.answer = [F.GOOD_CLAIMS, F.claims(("upgradeable", True, "is upgradeable"))]
+        stub.MODEL.answer = [F.GOOD_CLAIMS, F.claims(("upgradeable", True, "is upgradeable")), {"claims": []}]
         o = run_claim(self.c)
         self.assertTrue(o.ok, o)
         self.assertEqual(o.value["verdict"], "INCONCLUSIVE")
         self.assertIn("did not extract the same claims", o.value["summary"])
 
-    def test_model_error_is_inconclusive(self):
+    def test_one_model_error_is_tolerated(self):
         stub.MODEL.raise_next = 1
+        self.assertEqual(run_claim(self.c).value["verdict"], "MATCH")
+
+    def test_model_error_is_inconclusive(self):
+        stub.MODEL.raise_next = 2
         o = run_claim(self.c)
         self.assertEqual((o.value["verdict"], o.value["basis"]), ("INCONCLUSIVE", "CLAIMS_NOT_AGREED_MODEL_ERROR"))
 
@@ -926,6 +951,7 @@ class Filing(unittest.TestCase):
         def answer(prompt, n):
             # leader (calls 1, 2) says 4-of-7; validator (3, 4) says nothing
             return F.GOOD_CLAIMS if n <= 2 else {"claims": []}
+        # (the leader agreed with itself, so it asked only twice)
         stub.MODEL.answer = answer
         o = run_claim(self.c)
         self.assertTrue(o.rolled, o)
