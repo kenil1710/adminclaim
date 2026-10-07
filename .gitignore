@@ -1,0 +1,10 @@
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env*
+test/.accounts.json
+.accounts.json
+test/.state*.json
+research_cache/
