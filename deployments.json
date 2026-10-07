@@ -1,0 +1,40 @@
+{
+  "network": "studiodev",
+  "chain_id": 61997,
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "explorer": "https://explorer-studio-dev.genlayer.com/",
+  "contracts": {
+    "AdminClaim": {
+      "address": "0xED07bc560ba67Ad811B9416c540dEA3a717AF606",
+      "deploy_tx": "0xe9e6f8517be41568ee105b0128ae73a63ed9fb9561721b17a47d66b686849dd4",
+      "file": "contracts/AdminClaim.py",
+      "commit": "e45276c6a0a653c1ef06908b0da0b9ca9bde0aed",
+      "bytes": 88470,
+      "sha256": "acc78c5fa91528f000b7371b78ac334743487276f9ea7749a2472e3d919e7044",
+      "constructor_args": [
+        "CANONICAL",
+        21600,
+        3600
+      ],
+      "deployer": "0xfaD5Eb2Cc21AF74eC54C28668E8578772eB50961",
+      "deployed_at": "2026-10-07T17:52:29.934Z",
+      "mode": "CANONICAL"
+    },
+    "AdminClaimDemo": {
+      "address": "0x6457F5583E264d970EB9c2a09F9E7E68d6aD2178",
+      "deploy_tx": "0xb826e766c25f377395b0203bb78a76c6ef0cea37037866a1a8e9b26e4fc3edc2",
+      "file": "contracts/AdminClaim.py",
+      "commit": "e45276c6a0a653c1ef06908b0da0b9ca9bde0aed",
+      "bytes": 88470,
+      "sha256": "acc78c5fa91528f000b7371b78ac334743487276f9ea7749a2472e3d919e7044",
+      "constructor_args": [
+        "DEMO",
+        60,
+        600
+      ],
+      "deployer": "0xfaD5Eb2Cc21AF74eC54C28668E8578772eB50961",
+      "deployed_at": "2026-10-07T17:52:39.973Z",
+      "mode": "DEMO"
+    }
+  }
+}
