@@ -36,4 +36,10 @@ AdminClaim holds no funds: there is no payable method, no balance and no owner, 
 | T20 | Views that compute or fetch, so their output differs from what was stored | every view only reads storage; no view calls the network or the model | `Static.test_views_do_not_fetch_or_prompt`, `Filing.test_views_are_storage` |
 | T21 | Fetching arbitrary URLs from inside consensus | `allowed_url`: the pinned raw docs file, the GitHub compare endpoint, the five frozen RPCs; every fetch goes through it | `Static.test_every_fetch_goes_through_the_allowlist`, `DocsUrl.test_allowed_url_list` |
 
-Residual risks are listed in the README under "Known limitations".
+| T22 | EIP-1967 admin slot shown for appearance while a UUPS implementation holds the real upgrade power (round-1 H1) | the implementation's runtime and `proxiableUUID()` are read; an implementation that can upgrade the proxy makes it `IMPLEMENTATION_CAN_UPGRADE` (not standard) | `test_attacks.test_a12`, `RoundOneRules.test_proxiable_uuid_alone_marks_uups` |
+| T23 | A delegating contract answers `owner()` / `getMinDelay()` from its implementation (round-1 H2) | DELEGATECALL / CALLCODE in a contract's own runtime: `DELEGATING_CONTRACT` (or `DIAMOND`), never Ownable / timelock | `test_attacks.test_a13` |
+| T24 | An unlisted proposer on an OZ TimelockController (round-1 H3) | through an OZ timelock, who-controls claims can be WEAKER or UNVERIFIABLE, never MATCH / STRONGER | `test_attacks.test_a17`, `RoundOneRules.test_oz_timelock_route_cannot_match_who_claims` |
+| T25 | The same address documented for two chains (round-1 H4) | a quote's section must not be about another chain (heading + the section's lines holding the address) | `test_attacks.test_a18`, `RoundOneRules.test_keep_claim_chain_binding` |
+| T26 | A MATCH that hides undecided claims; an unlinked controller deciding alone (round-1 M1, M2) | the sentence counts decided claims; subjects combine like routes | `test_attacks.test_a14`, `RoundOneRules.test_subjects_combine_conservatively` |
+
+Residual risks are listed in the README under "Known limitations" and in docs/ATTACK_REPORT.md ("Accepted residual risks").

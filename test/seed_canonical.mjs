@@ -39,6 +39,6 @@ for (const s of seeds) {
     console.log(`  waiting ${wait / 1000}s`);
     await sleep(wait);
   }
-  await sleep(20_000);
+  await sleep(Number(argOf("gap", "330000")));   // ~10 filings/hour: the GitHub API allows 60 calls/hour for all validators
 }
 console.log("\nstats", JSON.stringify(await view("get_stats")));

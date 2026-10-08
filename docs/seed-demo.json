@@ -1,0 +1,164 @@
+{
+  "contract": "0x4974407d9611a979677E3203CA2f95e283907554",
+  "steps": [
+    {
+      "step": "refuse_branch",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/main/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "URL_NOT_PINNED_TO_COMMIT",
+      "at": "2026-10-07T18:21:23.396Z",
+      "tx": "0x40d33fbdb4797b6989b5f02ea2b69f1bda011a1bcecbf3016513097669fd3509",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 12.801,
+      "revert": "REFUSED: URL_NOT_PINNED_TO_COMMIT",
+      "matched": true
+    },
+    {
+      "step": "refuse_tag",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/balancer/docs-v3/v1.0.0/docs/concepts/governance/multisig.md",
+        "",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "URL_NOT_PINNED_TO_COMMIT",
+      "at": "2026-10-07T18:21:49.861Z",
+      "tx": "0x41942420778600ced62307168ea528b6c5f18dc0622f4ce0dd1581f949ad9930",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 18.448,
+      "revert": "REFUSED: URL_NOT_PINNED_TO_COMMIT",
+      "matched": true
+    },
+    {
+      "step": "refuse_percent",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/cl%61ims.md",
+        "",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "URL_PERCENT_ENCODED",
+      "at": "2026-10-07T18:22:13.919Z",
+      "tx": "0x856a06c5f2957244c1331f3881e7653f0c684a74cc2a029afff0f852d51faa55",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 16.042,
+      "revert": "REFUSED: URL_PERCENT_ENCODED",
+      "matched": true
+    },
+    {
+      "step": "refuse_query",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md?plain=1",
+        "",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "URL_HAS_QUERY_OR_FRAGMENT",
+      "at": "2026-10-07T18:22:34.951Z",
+      "tx": "0x5eaa6ca1e1e4a7d066a1b64dd5fa4d81f0d5dc8bcee302ae2d69303d71401c70",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 13.027,
+      "revert": "REFUSED: URL_HAS_QUERY_OR_FRAGMENT",
+      "matched": true
+    },
+    {
+      "step": "refuse_host",
+      "method": "file_claim",
+      "args": [
+        "https://docs.balancer.fi/concepts/governance/multisig.html",
+        "",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "URL_HOST_NOT_ALLOWED",
+      "at": "2026-10-07T18:22:57.780Z",
+      "tx": "0x3075c9f2d9d2ddf320301e40dfe055ee6ce833740f2b51e9435e9aea12b4c13f",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 14.824,
+      "revert": "REFUSED: URL_HOST_NOT_ALLOWED",
+      "matched": true
+    },
+    {
+      "step": "refuse_fork_branch",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "attacker:main",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "BAD_BRANCH",
+      "at": "2026-10-07T18:23:18.941Z",
+      "tx": "0xe984ddbc05a027703e70750e4e57dacab2e4f767712cb3d97b7abbcdc2299bef",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 13.159,
+      "revert": "REFUSED: BAD_BRANCH",
+      "matched": true
+    },
+    {
+      "step": "refuse_chain",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "bsc",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "UNSUPPORTED_CHAIN",
+      "at": "2026-10-07T18:23:40.572Z",
+      "tx": "0x4b1020d358e71c0ab29d1a59325e35ced1d790217b52be679d4df7851aabf69e",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 13.628,
+      "revert": "REFUSED: UNSUPPORTED_CHAIN",
+      "matched": true
+    },
+    {
+      "step": "refuse_bad_address",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be8"
+      ],
+      "expect": "BAD_ADDRESS",
+      "at": "2026-10-07T18:24:01.475Z",
+      "tx": "0xc825185f8e7e35d16bc77f9bb8b943b4da11451fa11a703100f03d837985ab7b",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 12.899,
+      "revert": "REFUSED: BAD_ADDRESS",
+      "matched": true
+    },
+    {
+      "step": "refuse_unknown_record",
+      "method": "recheck",
+      "args": [
+        9999
+      ],
+      "expect": "NO_SUCH_RECORD",
+      "at": "2026-10-07T18:24:24.105Z",
+      "tx": "0x91d0ecac8b2ac1f04e40323dceaf30fb57751153da8a06b30de9d148ff0854e8",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 14.625,
+      "revert": "REFUSED: NO_SUCH_RECORD",
+      "matched": true
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "address": "0x36Fde7276cd4204A6bC45329f4bC37184111f1bB",
+  "tx": "0x43af6df5324f39b85cf01d86f905bda38b8c155e3221aaa274b342e7034b903a",
+  "status": "ACCEPTED",
+  "seconds": 14.248,
+  "result": [
+    {
+      "u": "https://api.github.com/rate_limit",
+      "s": 200,
+      "n": 424,
+      "t": "{\"resources\":{\"code_search\":{\"limit\":60,\"remaining\":0,\"reset\":1791397194,\"used\":60},\"core\":{\"limit\":60,\"remaining\":0,\"reset\":1791397194,\"used\":60},\"graphql\":{\"limit\":0,\"remaining\":0,\"reset\":1791400249,\"used\":0},\"integration_manifest\":{\"limit\":5000,\"remaining\":5000,\"reset\":1791400249,\"used\":0},\"searc",
+      "h": {
+        "x-ratelimit-limit": "b'60'",
+        "x-ratelimit-remaining": "b'0'",
+        "x-ratelimit-reset": "b'1791397194'",
+        "x-ratelimit-resource": "b'core'",
+        "x-ratelimit-used": "b'60'"
+      }
+    }
+  ]
+}
