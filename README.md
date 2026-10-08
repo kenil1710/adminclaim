@@ -24,7 +24,7 @@ Then every validator, on its own:
    * that section is not about a different chain,
    * code itself parses the number from the quote ("4-of-7", "4/7", "four of seven", "4 out of 7", "48 hours", "48h", "2 days", "172,800 seconds"), and it equals the model's value.
 
-   The leader asks up to three times and needs two answers with the same kept claims; otherwise the record is `INCONCLUSIVE`.
+   The leader asks up to three times and needs two of its own answers with the same kept claims; if it cannot get two (or the model fails), it proposes an `INCONCLUSIVE` record.
 3. **Walks the control path at one block.** The leader names the chain's latest *finalized* block, which must be at most 1 h old (canonical) or 10 min old (demo). Validators read exactly that block. Standard patterns only, depth at most 4:
    * EIP-1967 implementation / admin / beacon slots; the implementation must not be able to upgrade itself (UUPS).
    * Ownable `owner()` + `pendingOwner()`, including OpenZeppelin ProxyAdmin.
@@ -33,7 +33,7 @@ Then every validator, on its own:
    * Compound Timelock: `delay()`, `admin()`, `pendingAdmin()`.
 
    Non-standard, unreadable, deeper than 4, a delegating contract, or a Safe with modules: the claims that depend on it are `UNVERIFIABLE`.
-4. **Agrees.** Validators accept the leader's record only if it is identical to their own: docs sha256, commit, branch proof, block, every chain read, kept claims. Otherwise nothing is stored.
+4. **Agrees.** Validators accept the leader's record only if it is identical to their own: docs sha256, commit, branch proof, block, every chain read, kept claims. **If leader and validators extract different claims (or read different data), consensus fails and no record is written.** Nothing is left pending or stuck, and the filer can simply file again.
 
 Then **code** compares each kept claim with the chain and writes an immutable record.
 
@@ -43,7 +43,7 @@ Then **code** compares each kept claim with the chain and writes an immutable re
 | `WEAKER_THAN_CLAIMED` | lower threshold, fewer signers, shorter delay, an EOA where a multisig or timelock is stated, upgradeable where immutable is stated, or a path that skips the stated timelock |
 | `STRONGER_THAN_CLAIMED` | the chain is stricter than the docs (e.g. higher threshold, longer delay, no controller at all) |
 | `UNVERIFIABLE` | no claim could be decided with the standard patterns (or no claim was kept) |
-| `INCONCLUSIVE` | the leader's extractions did not agree, so nothing was compared |
+| `INCONCLUSIVE` | the leader's own model answers did not agree (no two of three matched) or the model failed, so nothing was compared. This is the only case that records INCONCLUSIVE; a disagreement between leader and validators writes no record at all |
 
 Each claim is compared on every control route (pending owners, timelock admins and proposers are routes too). The **weakest route** decides. Overall = the worst decided claim (WEAKER > STRONGER > MATCH), or `UNVERIFIABLE` if none was decided. When only some claims were decided, the sentence says how many.
 
@@ -155,6 +155,17 @@ await client.readContract({ address: "0x13cb...23E8", functionName: "get_record"
 
 Views: `get_record(id)`, `get_records(offset, limit)`, `get_history(key)`, `get_keys(offset, limit)`, `get_stats()`, `get_config()`.
 
+## How a reviewer can test
+
+Use the **demo** contract `0x4974407d9611a979677E3203CA2f95e283907554` on Studio Dev and **Polygon** (the only chain whose finality fits the demo's 10-minute window). Example known to work (demo record #2, MATCH):
+
+* `docs_url`: `https://raw.githubusercontent.com/balancer/docs-v3/98d4c352e332419d70415fa07a584579ac65b8e2/docs/concepts/governance/multisig.md`
+* `branch`: `""` (default branch)
+* `chain`: `polygon`
+* `addresses`: `0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85` (Balancer DAO multisig on Polygon, 6/11)
+
+Call `file_claim(docs_url, "", "polygon", address)` with a fee estimate, then `get_record(<record_id>)` or `get_stats()`. The same key is in cooldown for 60 s after each record; `recheck(record_id)` after that files a new linked record. To see refusals, change the commit to `main` (`URL_NOT_PINNED_TO_COMMIT`), use an address that is not in the file (`ADDRESS_NOT_IN_DOCS`), or use `ethereum` (`BLOCK_TOO_OLD` on the demo). If you get `GITHUB_API_HTTP_403`, the shared GitHub budget is exhausted; retry later. More examples: [docs/SEEDS.md](docs/SEEDS.md).
+
 ## Repository
 
 ```
@@ -180,8 +191,8 @@ Run the offline suite: `cd test && python3 -m unittest test_adminclaim test_atta
 * **Custom EIP-1967 proxies.** A proxy that writes the standard slots but has its own hidden upgrade path is not detected. UUPS-capable implementations are. Every node's code sha256 is stored for audit.
 * **One RPC per chain.** Validators read the same frozen RPC. An RPC that lies identically to everyone would be believed; one that answers differently stores nothing.
 * **Finality and the demo.** Ethereum, Arbitrum, Optimism and Base finalize 13 to 25 minutes behind the head, so the demo deployment (10-minute freshness) only accepts Polygon. Canonical (1 h) accepts all five.
-* **GitHub API budget.** Unauthenticated, 60 calls/hour shared by all studio-dev validators: roughly ten filings per hour network-wide. Over budget, filings are refused (`GITHUB_API_HTTP_403`), never decided.
-* **Leader/validator disagreement.** A validator that extracts different claims than the leader's agreed set rejects the round, and GenLayer rotates the leader. If no leader satisfies the validators, the transaction ends without a record (UNDETERMINED) rather than as an `INCONCLUSIVE` record. A dishonest leader can force `INCONCLUSIVE` (never a decided verdict).
+* **GitHub API budget.** The GitHub REST API is used unauthenticated: 60 calls per hour, shared by all studio-dev validators (one call per node per filing), so roughly ten filings an hour network-wide. When it is exhausted a filing is refused with `GITHUB_API_HTTP_403` (no record, never a verdict); retry later (the budget resets hourly).
+* **Leader/validator disagreement writes nothing.** A validator that extracts different claims than the leader's agreed set rejects the round, and GenLayer rotates the leader. If no leader satisfies the validators, consensus fails and no record is written: nothing is pending, nothing is stuck, and the filer can file again. GenLayer marks such a transaction UNDETERMINED; it is not recorded as `INCONCLUSIVE`. (`INCONCLUSIVE` is written only when the leader's own answers disagree; a dishonest leader could claim that and force `INCONCLUSIVE`, never a decided verdict.)
 * **Docs structure matters.** Claims must sit in a markdown section that names the address. Docs with no headings are one section. Claims written far from the address (e.g. a table at the bottom) are dropped, giving `UNVERIFIABLE` rather than a guess.
 * **Forked repos.** A repo that is itself a fork of a protocol's docs is accepted and named as such (`github.com/<fork-owner>/<repo>`). The commit must be on that repo's branch.
 * **Duplicate refusal** (same commit, same block) only triggers if a chain's finalized head stalls for longer than the cooldown; it is covered offline.
