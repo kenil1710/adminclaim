@@ -51,7 +51,7 @@ Each claim is compared on every control route (pending owners, timelock admins a
 
 Every record carries one sentence built by code, always dated, never naming a protocol (only the repo the docs came from):
 
-> Docs from github.com/lidofinance/docs. On-chain control at block 26142026 (2026-10-07 17:33 UTC) is weaker than what the docs at commit 4641585987 (2026-10-05) state.
+> Docs from github.com/lidofinance/docs. On-chain control at block 26142250 (2026-10-07 18:17 UTC) is weaker than what the docs at commit 4641585987 (2026-10-05) state. (canonical record #3)
 
 The other verdicts read "matches what the docs ... state", "is stronger than what the docs ... state", "could not be compared with what the docs ... state, using only the standard control patterns AdminClaim reads", and "Validators did not extract the same claims from the docs ...; on-chain control at block N (date) was read but not compared." AdminClaim never says a protocol lied, is a scam, or is unsafe: docs go stale, and the record shows both dates.
 
@@ -83,9 +83,58 @@ The model's only job is to point at sentences and say which of five fields each 
 
 ## Seeds
 
-Twelve real protocols' docs on four chains; full records in [docs/SEEDS.md](docs/SEEDS.md).
+Twelve real docs files (Lido, Balancer, Yearn, Optimism, Uniswap), five chains, filed on the canonical deployment. MATCH 5 · WEAKER_THAN_CLAIMED 2 · UNVERIFIABLE 5 (12 records, 5 chains). Full records, quotes and chain facts per hop: [docs/SEEDS.md](docs/SEEDS.md).
 
-SEEDS_TABLE
+| Protocol (docs) | Chain | Record | Block | Verdict |
+| Lido - Emergency Brakes: Ethereum | ethereum | [#1](https://explorer-studio-dev.genlayer.com/tx/0x79c2fa43243d638a21bc8eb54f6c807aac28ba6adb4e4a3cb15de5551347f4b7) | 26142186 | **MATCH** |
+| Lido - Emergency Brakes: Optimism | optimism | [#2](https://explorer-studio-dev.genlayer.com/tx/0x8a36cc8b6a9fca5e2fe40fb71658ad80b0ff0d540cd2eb64d43499aeef9821ed) | 157898891 | **MATCH** |
+| Lido - Rewards Share Committee | ethereum | [#3](https://explorer-studio-dev.genlayer.com/tx/0x0bbd6e8b76e4eec62fedf7968d878fc1d47c34c19ac2f53a0cbd9d7a33dcbf1f) | 26142250 | **WEAKER_THAN_CLAIMED** |
+| Lido - Bug Bounty Reserve Multisig | ethereum | [#4](https://explorer-studio-dev.genlayer.com/tx/0x0fd82046e5d040692d7736dacec4bc57394de1b6e4c10d332338334edc861ef1) | 26142282 | **WEAKER_THAN_CLAIMED** |
+| Lido - LOL Committee ARB Token Multisig | arbitrum | [#5](https://explorer-studio-dev.genlayer.com/tx/0xfe02f4c8050cf083d92b6b40d66392e5fd6435b1c59fcbfeaee3fa15a3759db5) | 512646208 | **MATCH** |
+| Lido - LOL Committee (Polygon) | polygon | [#6](https://explorer-studio-dev.genlayer.com/tx/0x86abfb2f757dead8bfc29823c7fa2cd44faed3db69b605e38ec81a5534a8c537) | 95129306 | **UNVERIFIABLE** |
+| Balancer - DAO multisig on Polygon | polygon | [#7](https://explorer-studio-dev.genlayer.com/tx/0x1cb2414255764145a246dcf7b0c076549f8a33c89fe7700b6adf896f5c2b627b) | 95129555 | **MATCH** |
+| Balancer - DAO multisig on Base | base | [#8](https://explorer-studio-dev.genlayer.com/tx/0x0ea953120c105638bf6bc9257f92bd69aa721e0554d2753ab5ffec277d46de16) | 52304602 | **MATCH** |
+| Balancer - Treasury Safe | ethereum | [#9](https://explorer-studio-dev.genlayer.com/tx/0x900964c9c71c82d8c2e6d1cbc94481ae0e20536ee80470ae6cbf22788aa591a2) | 26142442 | **UNVERIFIABLE** |
+| Yearn - governance multisig (yChad) | ethereum | [#10](https://explorer-studio-dev.genlayer.com/tx/0xaa49bbf95bbb925ee71f8cd172995f4fbe4b96671f9998838feb7e337b3cd3a0) | 26142474 | **UNVERIFIABLE** |
+| Optimism - L1 ProxyAdmin owner | ethereum | [#11](https://explorer-studio-dev.genlayer.com/tx/0xe1e9979b175893a3022f49243b1fca45e99d4bac9484fa6017bfb73bd750fa71) | 26142506 | **UNVERIFIABLE** |
+| Uniswap - Governance Timelock | ethereum | [#12](https://explorer-studio-dev.genlayer.com/tx/0x014a8e171f1b468b36d9dee9998e9f62c2ed35589620a20354e34193079bd44d) | 26142537 | **UNVERIFIABLE** |
+| Field | Value (code's parse) | Quote | Result |
+| multisig_threshold | 3 | `**Quorum:** 3/5` | MATCH |
+| multisig_signers | 5 | `**Quorum:** 3/5` | MATCH |
+| admin_kind | "multisig" | `**Purpose of the multisig:** The multisig is used to disable deposits & withdrawals for wstETH bridging to other chains (Arbitrum, Optimism, Base, Binance Smart` | MATCH |
+| Field | Value (code's parse) | Quote | Result |
+| multisig_threshold | 3 | `**Quorum:** 3/5` | MATCH |
+| multisig_signers | 5 | `**Quorum:** 3/5` | MATCH |
+| Field | Value (code's parse) | Quote | Result |
+| multisig_threshold | 3 | `**Quorum:** 3/6` | MATCH |
+| multisig_signers | 6 | `**Quorum:** 3/6` | WEAKER_THAN_CLAIMED |
+| admin_kind | "multisig" | `**Purpose of the multisig:**` | MATCH |
+| Field | Value (code's parse) | Quote | Result |
+| multisig_threshold | 5 | `**Quorum:** 5/9` | MATCH |
+| multisig_signers | 9 | `**Quorum:** 5/9` | WEAKER_THAN_CLAIMED |
+| admin_kind | "multisig" | `**Purpose of the multisig:** The multisig has been established to manage a dedicated reserve for the [Lido Bug Bounty Program](https://immunefi.com/bug-bounty/l` | MATCH |
+| Field | Value (code's parse) | Quote | Result |
+| multisig_threshold | 4 | `**Quorum:** 4/8` | MATCH |
+| multisig_signers | 8 | `**Quorum:** 4/8` | MATCH |
+| admin_kind | "multisig" | `### 2.8.5 Liquidity Observation Lab Committee ARB Token Multisig
+| Field | Value (code's parse) | Quote | Result |
+| multisig_threshold | 6 | `All chain-specific DAO multisigs use the [DAO Signer Set](#dao-multisig-signer-set) with a 6/11 threshold.` | MATCH |
+| multisig_signers | 11 | `All chain-specific DAO multisigs use the [DAO Signer Set](#dao-multisig-signer-set) with a 6/11 threshold.` | MATCH |
+| Field | Value (code's parse) | Quote | Result |
+| multisig_threshold | 6 | `All chain-specific DAO multisigs use the [DAO Signer Set](#dao-multisig-signer-set) with a 6/11 threshold.` | MATCH |
+| multisig_signers | 11 | `All chain-specific DAO multisigs use the [DAO Signer Set](#dao-multisig-signer-set) with a 6/11 threshold.` | MATCH |
+| Field | Value (code's parse) | Quote | Result |
+| multisig_threshold | 5 | `\| Treasury Safe             \| [0x0EFcCBb9E2C09Ea29551879bd9Da32362b32fc89](https://app.safe.global/home?safe=eth:0x0EFcCBb9E2C09Ea29551879bd9Da32362b32fc89) \` | UNVERIFIABLE |
+| multisig_signers | 7 | `\| Treasury Safe             \| [0x0EFcCBb9E2C09Ea29551879bd9Da32362b32fc89](https://app.safe.global/home?safe=eth:0x0EFcCBb9E2C09Ea29551879bd9Da32362b32fc89) \` | UNVERIFIABLE |
+| admin_kind | "multisig" | `\| Treasury Safe             \| [0x0EFcCBb9E2C09Ea29551879bd9Da32362b32fc89](https://app.safe.global/home?safe=eth:0x0EFcCBb9E2C09Ea29551879bd9Da32362b32fc89) \` | UNVERIFIABLE |
+| Field | Value (code's parse) | Quote | Result |
+| multisig_threshold | 6 | `The multisig is implemented by a 6-of-9 multi-signature wallet.` | UNVERIFIABLE |
+| multisig_signers | 9 | `The multisig is implemented by a 6-of-9 multi-signature wallet.` | UNVERIFIABLE |
+| admin_kind | "multisig" | `The multisig is implemented by a 6-of-9 multi-signature wallet.` | UNVERIFIABLE |
+| Field | Value (code's parse) | Quote | Result |
+| admin_kind | "DAO" | `Uniswap Governance is a system that allows holders of the UNI token to collectively manage, upgrade, and steer the future of the Uniswap protocol.` | UNVERIFIABLE |
+
+The two WEAKER records were checked by hand: each Lido Safe lost a signer on chain (2026-05-08 and 2026-07-31) after the docs section was written (2026-03-02 and 2026-03-05), and the docs were not updated. The UNVERIFIABLE ones are Safes with modules (Balancer Treasury, Yearn yChad), a governor-controlled timelock (Uniswap), and two where code dropped the only quote the model chose (wrong-chain section; a line naming another Safe).
 
 ## Using it
 
@@ -122,7 +171,7 @@ tools/live.py                runs the contract's own walk against the real chain
 docs/                        research, threat model, seeds, attack report, final check, submission
 ```
 
-Run the offline suite: `cd test && python3 -m unittest test_adminclaim test_attacks` (TEST_COUNT tests).
+Run the offline suite: `cd test && python3 -m unittest test_adminclaim test_attacks` (248 tests).
 
 ## Known limitations
 

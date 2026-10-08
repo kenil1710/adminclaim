@@ -159,6 +159,324 @@
       "seconds": 14.625,
       "revert": "REFUSED: NO_SUCH_RECORD",
       "matched": true
+    },
+    {
+      "step": "match_safe",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "MATCH",
+      "at": "2026-10-08T04:43:36.478Z",
+      "tx": "0x3d1890b17ece9b7db28c5e0c121a2f1b2423be8a62e871a9699148c65dd53ce5",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 69.278,
+      "revert": "",
+      "record_id": 1,
+      "prev_id": 0,
+      "verdict": "MATCH",
+      "basis": "WORST_DECIDED_CLAIM",
+      "block": 95152909,
+      "summary": "Docs from github.com/kenil1710/adminclaim. On-chain control at block 95152909 (2026-10-08 04:42 UTC) matches what the docs at commit 99d81aa346 (2026-10-07) state.",
+      "matched": true
+    },
+    {
+      "step": "match_real_docs",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/balancer/docs-v3/98d4c352e332419d70415fa07a584579ac65b8e2/docs/concepts/governance/multisig.md",
+        "",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "MATCH",
+      "at": "2026-10-08T04:46:13.767Z",
+      "tx": "0x0187f7b2dd5704c549790eb17bc759427aecaf8f4c571e70f635713ab2e1a690",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 149.274,
+      "revert": "",
+      "record_id": 2,
+      "prev_id": 0,
+      "verdict": "MATCH",
+      "basis": "WORST_DECIDED_CLAIM",
+      "block": 95153015,
+      "summary": "Docs from github.com/balancer/docs-v3. On-chain control at block 95153015 (2026-10-08 04:45 UTC) matches what the docs at commit 98d4c352e3 (2026-05-21) state.",
+      "matched": true
+    },
+    {
+      "step": "weaker",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0x87D93d9B2C672bf9c9642d853a8682546a5012B5"
+      ],
+      "expect": "WEAKER_THAN_CLAIMED",
+      "at": "2026-10-08T04:49:23.873Z",
+      "tx": "0xd776e152d8bb34f349ec294fd261923ed5f91f50b2d85d791ba572debbcd3d54",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 182.1,
+      "revert": "",
+      "record_id": 3,
+      "prev_id": 0,
+      "verdict": "WEAKER_THAN_CLAIMED",
+      "basis": "WORST_DECIDED_CLAIM",
+      "block": 95153152,
+      "summary": "Docs from github.com/kenil1710/adminclaim. On-chain control at block 95153152 (2026-10-08 04:48 UTC) is weaker than what the docs at commit 99d81aa346 (2026-10-07) state.",
+      "matched": true
+    },
+    {
+      "step": "stronger",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0xC18F11735C6a1941431cCC5BcF13AF0a052A5022"
+      ],
+      "expect": "STRONGER_THAN_CLAIMED",
+      "at": "2026-10-08T04:50:02.283Z",
+      "tx": "0x1161f5440b20a0a4cdc52e6a5a250d45d5dbb6cdaaab4c6ea27a1a96c7d07e1f",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 23.108,
+      "revert": "",
+      "record_id": 4,
+      "prev_id": 0,
+      "verdict": "STRONGER_THAN_CLAIMED",
+      "basis": "WORST_DECIDED_CLAIM",
+      "block": 95153190,
+      "summary": "Docs from github.com/kenil1710/adminclaim. On-chain control at block 95153190 (2026-10-08 04:49 UTC) is stronger than what the docs at commit 99d81aa346 (2026-10-07) state.",
+      "matched": true
+    },
+    {
+      "step": "match_immutable",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"
+      ],
+      "expect": "MATCH",
+      "at": "2026-10-08T04:50:49.835Z",
+      "tx": "0x4284e519747e7200341fde9922c020adc959f2b1feaebfbccc29d6df459ffce3",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 39.546,
+      "revert": "",
+      "record_id": 5,
+      "prev_id": 0,
+      "verdict": "MATCH",
+      "basis": "WORST_DECIDED_CLAIM",
+      "block": 95153210,
+      "summary": "Docs from github.com/kenil1710/adminclaim. On-chain control at block 95153210 (2026-10-08 04:50 UTC) matches what the docs at commit 99d81aa346 (2026-10-07) state.",
+      "matched": true
+    },
+    {
+      "step": "unverifiable_nonstandard",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
+      ],
+      "expect": "UNVERIFIABLE",
+      "at": "2026-10-08T04:52:00.613Z",
+      "tx": "0x829a6e0496189e8bf8324e67b4579f9798c67351e67e37d3682d270d64aab4ab",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 62.774,
+      "revert": "",
+      "record_id": 6,
+      "prev_id": 0,
+      "verdict": "UNVERIFIABLE",
+      "basis": "NO_CLAIM_DECIDED",
+      "block": 95153257,
+      "summary": "Docs from github.com/kenil1710/adminclaim. On-chain control at block 95153257 (2026-10-08 04:51 UTC) could not be compared with what the docs at commit 99d81aa346 (2026-10-07) state, using only the standard control patterns AdminClaim reads.",
+      "matched": true
+    },
+    {
+      "step": "unverifiable_modules",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0x3c58668054c299bE836a0bBB028Bee3aD4724846"
+      ],
+      "expect": "UNVERIFIABLE",
+      "at": "2026-10-08T04:52:43.446Z",
+      "tx": "0x6325e38ff6e255ab12327ef2a0a70caf999ef3b24e95742c56ffea783f68e4fa",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 30.232,
+      "revert": "",
+      "record_id": 7,
+      "prev_id": 0,
+      "verdict": "UNVERIFIABLE",
+      "basis": "NO_CLAIM_DECIDED",
+      "block": 95153294,
+      "summary": "Docs from github.com/kenil1710/adminclaim. On-chain control at block 95153294 (2026-10-08 04:52 UTC) could not be compared with what the docs at commit 99d81aa346 (2026-10-07) state, using only the standard control patterns AdminClaim reads.",
+      "matched": true
+    },
+    {
+      "step": "hard_to_read",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0xFc832dA3D688352C0aB1A32136c7fABbB16d66E6"
+      ],
+      "expect": "(model decides what to quote; any outcome)",
+      "at": "2026-10-08T04:53:15.157Z",
+      "tx": "0xaafbc0aab7feafbeccd40c00f4a0351da65ae1561de707cad66d060aad313798",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 23.706,
+      "revert": "",
+      "record_id": 8,
+      "prev_id": 0,
+      "verdict": "MATCH",
+      "basis": "WORST_DECIDED_CLAIM",
+      "block": 95153318,
+      "summary": "Docs from github.com/kenil1710/adminclaim. On-chain control at block 95153318 (2026-10-08 04:52 UTC) matches what the docs at commit 99d81aa346 (2026-10-07) state.",
+      "matched": true
+    },
+    {
+      "step": "refuse_address_not_in_docs",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0x7c68c42De679ffB0f16216154C996C354cF1161B"
+      ],
+      "expect": "ADDRESS_NOT_IN_DOCS",
+      "at": "2026-10-08T04:53:37.412Z",
+      "tx": "0xf9ce51a420b3894910df678395c527cd996cb4759adcdde73ae99ea13440f494",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 14.249,
+      "revert": "REFUSED: ADDRESS_NOT_IN_DOCS:0x7c68c42de679ffb0f16216154c996c354cf1161b",
+      "matched": true
+    },
+    {
+      "step": "refuse_fork_commit",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/yearn/yearn-devdocs/21233a9e98ce6052b891dbbac0b07a65fd409281/docs/developers/security/multisig.md",
+        "",
+        "ethereum",
+        "0xFEB4acf3df3cDEA7399794D0869ef76A6EfAff52"
+      ],
+      "expect": "COMMIT_NOT_ON_BRANCH",
+      "at": "2026-10-08T04:54:09.205Z",
+      "tx": "0xe6453d9f0f3870edb12d5dde8921bf391a7a4412614f2040fae3d0a65f2c3d59",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 14.662,
+      "revert": "REFUSED: COMMIT_NOT_ON_BRANCH",
+      "matched": true
+    },
+    {
+      "step": "refuse_block_too_old",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/lidofinance/docs/4c391cfe400f359ff346035b86f9d1703c3929e5/docs/multisigs/emergency-brakes.md",
+        "",
+        "ethereum",
+        "0x73b047fe6337183A454c5217241D780a932777bD"
+      ],
+      "expect": "BLOCK_TOO_OLD",
+      "at": "2026-10-08T04:54:33.167Z",
+      "tx": "0x653be6086b24132a0d88df94d6eb24f3a74fa838212b0e588c4aed12abb10f37",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 15.958,
+      "revert": "REFUSED: BLOCK_TOO_OLD",
+      "matched": true
+    },
+    {
+      "step": "refuse_cooldown",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0xeE071f4B516F69a1603dA393CdE8e76C40E5Be85"
+      ],
+      "expect": "COOLDOWN",
+      "at": "2026-10-08T04:55:12.077Z",
+      "tx": "0xb57a03ce3a4d1128488abb600e8e5a493802da081da556d28d3e01c8868d829b",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 30.905,
+      "revert": "REFUSED: GITHUB_API_HTTP_403",
+      "matched": false
+    },
+    {
+      "step": "refuse_recheck_cooldown",
+      "method": "recheck",
+      "args": [
+        1
+      ],
+      "expect": "COOLDOWN",
+      "at": "2026-10-08T04:56:32.865Z",
+      "tx": "0x67a1cff9f5b31125494d4ef26fb6a775a1d3dcd737e273ae0120c44f97e0bb66",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 72.778,
+      "revert": "",
+      "record_id": 9,
+      "prev_id": 1,
+      "verdict": "MATCH",
+      "basis": "WORST_DECIDED_CLAIM",
+      "block": 95153442,
+      "summary": "Docs from github.com/kenil1710/adminclaim. On-chain control at block 95153442 (2026-10-08 04:56 UTC) matches what the docs at commit 99d81aa346 (2026-10-07) state.",
+      "matched": false
+    },
+    {
+      "step": "recheck_after_cooldown_2",
+      "method": "recheck",
+      "args": [
+        4
+      ],
+      "expect": "(new record linked)",
+      "at": "2026-10-08T04:58:29.774Z",
+      "tx": "0x4e607f9012bee6372a4c5f1b7af630c28ce856d3ecb73116945a53a036dce3e4",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 64.241,
+      "revert": "REFUSED: GITHUB_API_HTTP_403",
+      "matched": false
+    },
+    {
+      "step": "refuse_cooldown",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0xC18F11735C6a1941431cCC5BcF13AF0a052A5022"
+      ],
+      "expect": "COOLDOWN",
+      "at": "2026-10-08T04:58:29.778Z",
+      "tx": "0xb5bf7d3c1874b9fe4fffa4eda551326cabdfc7b50fbb62e89dddf89937e91bd6",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 60.855,
+      "revert": "REFUSED: GITHUB_API_HTTP_403",
+      "matched": false
     }
   ]
 }
