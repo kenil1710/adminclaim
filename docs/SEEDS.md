@@ -302,3 +302,39 @@ Chain facts per hop:
 > Docs from github.com/uniswap/docs. On-chain control at block 26142537 (2026-10-07 19:15 UTC) could not be compared with what the docs at commit 338d70983a (2026-07-17) state, using only the standard control patterns AdminClaim reads.
 
 **Checked by hand:** Compound Timelock (delay 172800 s) whose admin is GovernorBravo `0x408E...` (a delegating contract, not a standard pattern). The docs' claim is about UNI-holder (DAO) control; AdminClaim does not read governors, so it is UNVERIFIABLE.
+
+
+## Demo deployment: every path
+
+Demo [`0x4974407d9611a979677E3203CA2f95e283907554`](https://explorer-studio-dev.genlayer.com/address/0x4974407d9611a979677E3203CA2f95e283907554) (60 s cooldown, block no older than 10 min, so Polygon only). Statements file: [docs/demo/claims.md](demo/claims.md) (this repo's own, see its header). Every transaction, in order (`docs/seed-demo.json`):
+
+| Step | Expected | Got | Tx |
+|---|---|---|---|
+| refuse_branch | URL_NOT_PINNED_TO_COMMIT | REFUSED: URL_NOT_PINNED_TO_COMMIT  | [0x40d33fbd](https://explorer-studio-dev.genlayer.com/tx/0x40d33fbdb4797b6989b5f02ea2b69f1bda011a1bcecbf3016513097669fd3509) |
+| refuse_tag | URL_NOT_PINNED_TO_COMMIT | REFUSED: URL_NOT_PINNED_TO_COMMIT  | [0x41942420](https://explorer-studio-dev.genlayer.com/tx/0x41942420778600ced62307168ea528b6c5f18dc0622f4ce0dd1581f949ad9930) |
+| refuse_percent | URL_PERCENT_ENCODED | REFUSED: URL_PERCENT_ENCODED  | [0x856a06c5](https://explorer-studio-dev.genlayer.com/tx/0x856a06c5f2957244c1331f3881e7653f0c684a74cc2a029afff0f852d51faa55) |
+| refuse_query | URL_HAS_QUERY_OR_FRAGMENT | REFUSED: URL_HAS_QUERY_OR_FRAGMENT  | [0x5eaa6ca1](https://explorer-studio-dev.genlayer.com/tx/0x5eaa6ca1e1e4a7d066a1b64dd5fa4d81f0d5dc8bcee302ae2d69303d71401c70) |
+| refuse_host | URL_HOST_NOT_ALLOWED | REFUSED: URL_HOST_NOT_ALLOWED  | [0x3075c9f2](https://explorer-studio-dev.genlayer.com/tx/0x3075c9f2d9d2ddf320301e40dfe055ee6ce833740f2b51e9435e9aea12b4c13f) |
+| refuse_fork_branch | BAD_BRANCH | REFUSED: BAD_BRANCH  | [0xe984ddbc](https://explorer-studio-dev.genlayer.com/tx/0xe984ddbc05a027703e70750e4e57dacab2e4f767712cb3d97b7abbcdc2299bef) |
+| refuse_chain | UNSUPPORTED_CHAIN | REFUSED: UNSUPPORTED_CHAIN  | [0x4b1020d3](https://explorer-studio-dev.genlayer.com/tx/0x4b1020d358e71c0ab29d1a59325e35ced1d790217b52be679d4df7851aabf69e) |
+| refuse_bad_address | BAD_ADDRESS | REFUSED: BAD_ADDRESS  | [0xc825185f](https://explorer-studio-dev.genlayer.com/tx/0xc825185f8e7e35d16bc77f9bb8b943b4da11451fa11a703100f03d837985ab7b) |
+| refuse_unknown_record | NO_SUCH_RECORD | REFUSED: NO_SUCH_RECORD  | [0x91d0ecac](https://explorer-studio-dev.genlayer.com/tx/0x91d0ecac8b2ac1f04e40323dceaf30fb57751153da8a06b30de9d148ff0854e8) |
+| match_safe | MATCH | record #1: MATCH  | [0x3d1890b1](https://explorer-studio-dev.genlayer.com/tx/0x3d1890b17ece9b7db28c5e0c121a2f1b2423be8a62e871a9699148c65dd53ce5) |
+| match_real_docs | MATCH | record #2: MATCH  | [0x0187f7b2](https://explorer-studio-dev.genlayer.com/tx/0x0187f7b2dd5704c549790eb17bc759427aecaf8f4c571e70f635713ab2e1a690) |
+| weaker | WEAKER_THAN_CLAIMED | record #3: WEAKER_THAN_CLAIMED  | [0xd776e152](https://explorer-studio-dev.genlayer.com/tx/0xd776e152d8bb34f349ec294fd261923ed5f91f50b2d85d791ba572debbcd3d54) |
+| stronger | STRONGER_THAN_CLAIMED | record #4: STRONGER_THAN_CLAIMED  | [0x1161f544](https://explorer-studio-dev.genlayer.com/tx/0x1161f5440b20a0a4cdc52e6a5a250d45d5dbb6cdaaab4c6ea27a1a96c7d07e1f) |
+| match_immutable | MATCH | record #5: MATCH  | [0x4284e519](https://explorer-studio-dev.genlayer.com/tx/0x4284e519747e7200341fde9922c020adc959f2b1feaebfbccc29d6df459ffce3) |
+| unverifiable_nonstandard | UNVERIFIABLE | record #6: UNVERIFIABLE  | [0x829a6e04](https://explorer-studio-dev.genlayer.com/tx/0x829a6e0496189e8bf8324e67b4579f9798c67351e67e37d3682d270d64aab4ab) |
+| unverifiable_modules | UNVERIFIABLE | record #7: UNVERIFIABLE  | [0x6325e38f](https://explorer-studio-dev.genlayer.com/tx/0x6325e38ff6e255ab12327ef2a0a70caf999ef3b24e95742c56ffea783f68e4fa) |
+| hard_to_read | (model decides what to quote; any outcome) | record #8: MATCH  | [0xaafbc0aa](https://explorer-studio-dev.genlayer.com/tx/0xaafbc0aab7feafbeccd40c00f4a0351da65ae1561de707cad66d060aad313798) |
+| refuse_address_not_in_docs | ADDRESS_NOT_IN_DOCS | REFUSED: ADDRESS_NOT_IN_DOCS:0x7c68c42de679ffb0f16216154c996c354cf1161b  | [0xf9ce51a4](https://explorer-studio-dev.genlayer.com/tx/0xf9ce51a420b3894910df678395c527cd996cb4759adcdde73ae99ea13440f494) |
+| refuse_fork_commit | COMMIT_NOT_ON_BRANCH | REFUSED: COMMIT_NOT_ON_BRANCH  | [0xe6453d9f](https://explorer-studio-dev.genlayer.com/tx/0xe6453d9f0f3870edb12d5dde8921bf391a7a4412614f2040fae3d0a65f2c3d59) |
+| refuse_block_too_old | BLOCK_TOO_OLD | REFUSED: BLOCK_TOO_OLD  | [0x653be608](https://explorer-studio-dev.genlayer.com/tx/0x653be6086b24132a0d88df94d6eb24f3a74fa838212b0e588c4aed12abb10f37) |
+| refuse_cooldown | COOLDOWN | REFUSED: GITHUB_API_HTTP_403 (see note) | [0xb57a03ce](https://explorer-studio-dev.genlayer.com/tx/0xb57a03ce3a4d1128488abb600e8e5a493802da081da556d28d3e01c8868d829b) |
+| refuse_recheck_cooldown | COOLDOWN | record #9 (prev #1): MATCH (see note) | [0x67a1cff9](https://explorer-studio-dev.genlayer.com/tx/0x67a1cff9f5b31125494d4ef26fb6a775a1d3dcd737e273ae0120c44f97e0bb66) |
+| recheck_after_cooldown_2 | (new record linked) | REFUSED: GITHUB_API_HTTP_403 (see note) | [0x4e607f90](https://explorer-studio-dev.genlayer.com/tx/0x4e607f9012bee6372a4c5f1b7af630c28ce856d3ecb73116945a53a036dce3e4) |
+| refuse_cooldown | COOLDOWN | REFUSED: GITHUB_API_HTTP_403 (see note) | [0xb5bf7d3c](https://explorer-studio-dev.genlayer.com/tx/0xb5bf7d3c1874b9fe4fffa4eda551326cabdfc7b50fbb62e89dddf89937e91bd6) |
+| recheck_after_cooldown_2 | (new record linked) | record #10 (prev #4): STRONGER_THAN_CLAIMED  | [0x462c9039](https://explorer-studio-dev.genlayer.com/tx/0x462c9039efe5f41f8a9deafef653791eb22f89228bdb8e22e1456a0c0ae52dad) |
+| refuse_cooldown | COOLDOWN | REFUSED: COOLDOWN_UNTIL_1791438409  | [0x9840fe95](https://explorer-studio-dev.genlayer.com/tx/0x9840fe956f789f57e4299a9ea1c3b6901dcc057b53fd551cfc4d4bdeb9e6d5c7) |
+
+Notes: refusals are reverted transactions (nothing stored). `GITHUB_API_HTTP_403` rows are filings refused because the shared GitHub API budget was exhausted at that moment (a refusal, never a verdict). The "hard_to_read" paragraph came out MATCH: the model agreed on "three out of six" every time, so INCONCLUSIVE did not occur live (it is covered offline: `test_unstable_model_is_inconclusive`). A same-commit-same-block DUPLICATE cannot occur live: the cooldown (60 s) is longer than Polygon's finalized head ever stalls (it moves every few seconds); it is covered offline (`test_a24_duplicate_filing`).

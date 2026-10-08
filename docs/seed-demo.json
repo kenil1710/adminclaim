@@ -477,6 +477,44 @@
       "seconds": 60.855,
       "revert": "REFUSED: GITHUB_API_HTTP_403",
       "matched": false
+    },
+    {
+      "step": "recheck_after_cooldown_2",
+      "method": "recheck",
+      "args": [
+        4
+      ],
+      "expect": "(new record linked)",
+      "at": "2026-10-08T05:46:12.982Z",
+      "tx": "0x462c9039efe5f41f8a9deafef653791eb22f89228bdb8e22e1456a0c0ae52dad",
+      "status": "ACCEPTED",
+      "ok": true,
+      "seconds": 27.577,
+      "revert": "",
+      "record_id": 10,
+      "prev_id": 4,
+      "verdict": "STRONGER_THAN_CLAIMED",
+      "block": 95155432,
+      "summary": "Docs from github.com/kenil1710/adminclaim. On-chain control at block 95155432 (2026-10-08 05:45 UTC) is stronger than what the docs at commit 99d81aa346 (2026-10-07) state.",
+      "matched": true
+    },
+    {
+      "step": "refuse_cooldown",
+      "method": "file_claim",
+      "args": [
+        "https://raw.githubusercontent.com/kenil1710/adminclaim/99d81aa3463d21bd2af6bdfed114c9a94c7db30c/docs/demo/claims.md",
+        "",
+        "polygon",
+        "0xC18F11735C6a1941431cCC5BcF13AF0a052A5022"
+      ],
+      "expect": "COOLDOWN",
+      "at": "2026-10-08T05:46:12.989Z",
+      "tx": "0x9840fe956f789f57e4299a9ea1c3b6901dcc057b53fd551cfc4d4bdeb9e6d5c7",
+      "status": "ACCEPTED",
+      "ok": false,
+      "seconds": 26.395,
+      "revert": "REFUSED: COOLDOWN_UNTIL_1791438409",
+      "matched": true
     }
   ]
 }

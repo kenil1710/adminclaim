@@ -86,5 +86,19 @@ Labels are for reading this file only; the contract stores no protocol names, on
 ## Records
 
 ${details.join("\n")}`;
-writeFileSync(root + "docs/SEEDS.md", out);
+const demo = JSON.parse(readFileSync(root + "docs/seed-demo.json", "utf8")).steps;
+const daddr = dep.contracts.AdminClaimDemo.address;
+const demoMd = `
+
+## Demo deployment: every path
+
+Demo [\`${daddr}\`](${EX}/address/${daddr}) (60 s cooldown, block no older than 10 min, so Polygon only). Statements file: [docs/demo/claims.md](demo/claims.md) (this repo's own, see its header). Every transaction, in order (\`docs/seed-demo.json\`):
+
+| Step | Expected | Got | Tx |
+|---|---|---|---|
+${demo.map((d) => `| ${d.step} | ${d.expect} | ${d.verdict ? "record #" + d.record_id + (d.prev_id ? " (prev #" + d.prev_id + ")" : "") + ": " + d.verdict : d.revert} ${d.matched ? "" : "(see note)"} | [${d.tx.slice(0, 10)}](${EX}/tx/${d.tx}) |`).join("\n")}
+
+Notes: refusals are reverted transactions (nothing stored). \`GITHUB_API_HTTP_403\` rows are filings refused because the shared GitHub API budget was exhausted at that moment (a refusal, never a verdict). The "hard_to_read" paragraph came out MATCH: the model agreed on "three out of six" every time, so INCONCLUSIVE did not occur live (it is covered offline: \`test_unstable_model_is_inconclusive\`). A same-commit-same-block DUPLICATE cannot occur live: the cooldown (60 s) is longer than Polygon's finalized head ever stalls (it moves every few seconds); it is covered offline (\`test_a24_duplicate_filing\`).
+`;
+writeFileSync(root + "docs/SEEDS.md", out + demoMd);
 console.log(Object.entries(counts), total);
